@@ -1,0 +1,29 @@
+{
+  "name": "node-red-larkea-local",
+  "version": "1.0.0",
+  "description": "The node of lark",
+  "dependencies": {
+    "is-utf8": "^0.2.1",
+    "mqtt": "^3.0.0",
+    "qs": "^6.9.1",
+    "request": "^2.88.0"
+  },
+  "node-red": {
+    "nodes": {
+      "lark_subscribe": "nodes/lark_subscribe.js",
+      "lark_public": "nodes/lark_public.js",
+      "lark_oauth": "nodes/lark_oauth.js"
+    }
+  },
+  "keywords": [
+    "lark",
+    "huitong",
+    "HT"
+  ],
+  "homepage": "https://www.huitong-tech.com",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/node-red/node-red-nodes.git"
+  }
+}

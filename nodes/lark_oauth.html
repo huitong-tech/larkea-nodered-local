@@ -1,0 +1,106 @@
+<script type="text/html" data-template-name="lark-oauth">
+    <div class="form-row">
+        <label for="node-config-input-name"><i></i> <span>名称</span></label>
+        <input type="text" id="node-config-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-accessKey"><i></i> <span>AccessKey</span></label>
+        <input type="text" id="node-config-input-accessKey">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-accessSecret"><i></i> <span>AccessSecret</span></label>
+        <input type="text" id="node-config-input-accessSecret">
+    </div>
+    <div class="form-row">
+        <label for="node-input-remind"><i></i></label>
+        <span id="node-input-remind" style="color: #d6615f"></span>
+        <span id="node-input-success" style="color: #5a8"></span>
+    </div>
+</script>
+<script type="text/javascript">
+    RED.nodes.registerType('lark-oauth',{
+        category: 'config',
+        defaults: {
+            name: { value: "" }
+        },
+        credentials: {
+            accessKey: { value:"", required:true },
+            accessSecret: { value:"", required:true }
+        },
+        label: function() {
+            if (this.name) {
+                return this.name;
+            }  else {
+                return this.key || 'oauth';
+            }
+        },
+        oneditprepare: function(){
+            var node = this;
+            var key = $("#node-config-input-accessKey");
+            var secret = $("#node-config-input-accessSecret");
+            if (key.val() !== "" && secret.val() !== "") {
+                var data = {
+                    "accessKey": key.val(),
+                    "accessSecret": secret.val(),
+                    "nodeId": node.id
+                };
+                $.getJSON('lark-oauth',data,function(data) {
+                    if (JSON.parse(data).success) {
+                        $('#node-input-remind').text('')
+                        $('#node-input-success').text('验证成功');
+                    } else {
+                        if (JSON.parse(data).code === 100013) {
+                            $('#node-input-success').text('');
+                            $('#node-input-remind').text('AccessKey或AccessSecret不正确');
+                        }
+                    }
+
+                })
+            }
+            key.change(function () {
+                this.key = key.val();
+                this.secret = secret.val();
+                if (this.key !== "" && this.secret !== "") {
+                    var data = {
+                        "accessKey": this.key,
+                        "accessSecret": this.secret,
+                        "nodeId": node.id
+                    };
+                    $.getJSON('lark-oauth',data,function(data) {
+                        if (JSON.parse(data).success) {
+                            $('#node-input-remind').text('');
+                            $('#node-input-success').text('验证成功');
+                        } else {
+                            if (JSON.parse(data).code === 100013) {
+                                $('#node-input-success').text('');
+                                $('#node-input-remind').text('AccessKey或AccessSecret不正确');
+                            }
+                        }
+                    });
+                }
+            });
+            secret.change(function () {
+                this.key = key.val();
+                this.secret = secret.val();
+                if (this.key !== "" && this.secret !== "") {
+                    var data = {
+                        "accessKey": this.key,
+                        "accessSecret": this.secret,
+                        "nodeId": node.id
+                    };
+                    $.getJSON('lark-oauth',data,function(data) {
+                        if (JSON.parse(data).success) {
+                            $('#node-input-remind').text('')
+                            $('#node-input-success').text('验证成功');
+                        } else {
+                            if (JSON.parse(data).code === 100013) {
+                                $('#node-input-success').text('');
+                                $('#node-input-remind').text('AccessKey或AccessSecret不正确');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    });
+</script>

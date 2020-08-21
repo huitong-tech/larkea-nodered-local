@@ -1,0 +1,268 @@
+<script type="text/html" data-template-name="Lark Local Subscribe">
+    <div class="form-row">
+        <label for="node-input-larkOauth"><i></i>accessToken</label>
+        <input type="text" id="node-input-larkOauth">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i></i>节点名称</label>
+        <input type="text" id="node-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-note"><i></i>节点备注</label>
+        <input type="text" id="node-input-note">
+    </div>
+    <div class="form-row">
+        <label for="node-input-product"><i></i>ProductKey</label>
+        <input type="text" id="node-input-product" list="productList">
+        <datalist id="productList"></datalist>
+    </div>
+    <div class="form-row">
+        <label for="node-input-productName"><i></i></label>
+        <span id="node-input-productName"></span>
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i></i>DeviceKey</label>
+        <input type="text" id="node-input-device" list="deviceList">
+        <datalist id="deviceList"></datalist>
+    </div>
+    <div class="form-row">
+        <label for="node-input-deviceName"><i></i></label>
+        <span id="node-input-deviceName"></span>
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i></i>主题类型</label>
+        <input type="text" id="node-input-topic" list="topicList">
+        <datalist id="topicList"></datalist>
+    </div>
+    <div class="form-row">
+        <label for="node-input-topicType"><i></i></label>
+        <span id="node-input-topicType"></span>
+    </div>
+    <div class="form-row">
+        <label for="node-input-refresh"><i></i></label>
+        <span id="node-input-refresh"></span>
+    </div>
+</script>
+<script type="text/javascript">
+    var products = [];
+    var devices = [];
+    var topics = [];
+
+    (function () {
+        RED.nodes.registerType('Lark Local Subscribe',{
+            category: 'Lark节点',
+            color: 'rgba(0, 174, 191, 0.729411764705882)',
+            defaults: {
+                name: { value: '' },
+                note: { value: '' },
+                refresh: { value: '' },
+                topic: { value: '', required: true },
+                device: { value: '', required: true },
+                product: { value: '', required: true },
+                productId: { value: '', required: true },
+                deviceSecret: { value: '', required: true },
+                larkOauth: { type: 'lark-oauth', required:true }
+            },
+            inputs:0,
+            outputs:1,
+            icon: 'icons/config.svg',
+            paletteLabel: 'local订阅',
+            align: 'left',
+            label: function() {
+                if (this.name) {
+                    return this.name;
+                } else if (this.product && this.device) {
+                    return this.product + '.' + this.device;
+                } else {
+                    return 'Lark订阅';
+                }
+            },
+            labelStyle: function() { return this.name?'node_label_italic':''; },
+            oneditprepare: function() {
+                var node = this;
+                // 选择token
+                var tokenElement = $('#node-input-larkOauth');
+                tokenElement.change(function () {
+                    this.oauthNodes =$('#node-input-larkOauth').val();
+                    var data = {
+                        "nodeId": this.oauthNodes
+                    }
+                    $.getJSON('lark-token',data,function(d) {
+                        if (d.success) {
+                            console.log('get token success!');
+                            // 获取产品
+                            $.getJSON('lark-product',function(data) {
+                                if (JSON.parse(data).success) {
+                                    console.log('get product success!');
+                                    products = JSON.parse(data).data.rows;
+                                    $("#productList").empty();
+                                    var productElement = $('#node-input-product')
+                                    products.forEach((item, index)=>{
+                                        var option = document.createElement('option');
+                                        option.textContent = item.name;
+                                        if (item.default) { option.textContent += ' -- DEFAULT'; }
+                                        option.setAttribute('value', item.productKey);
+                                        document.getElementById("productList").appendChild(option);
+                                    });
+                                    productElement.val(node.product);
+                                    productElement.val()!==null && productElement.change();
+                                } else {
+                                    console.log('get product failed!')
+                                    if (JSON.parse(data).code===100010){
+                                        var n = {nodeId: $('#node-input-larkOauth').val()}
+                                        $.getJSON('lark-refresh',n,function(data) {
+                                            if (data.success) {
+                                                var refresh = $("#node-input-refresh")
+                                                if (refresh.text()===""){
+                                                    node.refresh = " ";
+                                                } else {
+                                                    node.refresh = "";
+                                                }
+                                                tokenElement.change()
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        } else {
+                            topics = [];
+                            devices = [];
+                            products = [];
+                            $("#topicList").empty();
+                            $("#deviceList").empty();
+                            $("#productList").empty();
+                            $("#node-input-product").val('');
+                            $("#node-input-topicType").text('');
+                            $("#node-input-deviceName").text('');
+                            $("#node-input-productName").text('');
+                            $("#node-input-topic").parent().css('display','none');
+                            $("#node-input-device").parent().css('display','none');
+                        }
+                    });
+                });
+
+                // 选择产品
+                $("#node-input-product").change(function () {
+                    this.product = $("#node-input-product").val();
+                    var name = this.product || node.product;
+                    var product = products.find(ele=>ele.productKey === name);
+                    var bol = !!product;
+                    if (bol) {
+                        node.productId = product.id;
+                        $("#deviceList").empty();
+                        $("#node-input-productName").text("" || product.name);
+                        // 获取设备
+                        $.getJSON('lark-device?name='+name,function(data) {
+                            if (JSON.parse(data).success) {
+                                console.log('get device success!');
+                                var deviceElement = $("#node-input-device");
+                                deviceElement.parent().css('display','block');
+                                devices = JSON.parse(data).data.rows;
+                                devices.forEach((item, index)=>{
+                                    var option = document.createElement('option');
+                                    option.textContent = item.name;
+                                    if (item.default) { option.textContent += ' -- DEFAULT'; }
+                                    option.setAttribute('value', item.deviceKey);
+                                    document.getElementById("deviceList").appendChild(option);
+                                });
+                                deviceElement.val(node.device);
+                                deviceElement.val()!==null && deviceElement.change();
+                            } else {
+                                console.log('get device failed!')
+                                $("#node-input-topic").parent().css('display','none');
+                                $("#node-input-device").parent().css('display','none');
+                                $("#node-input-topicType").text("");
+                                $("#node-input-deviceName").text("");
+                            }
+                        });
+                    } else {
+                        node.topic = "";
+                        node.device = "";
+                        $("#node-input-topicType").text("");
+                        $("#node-input-deviceName").text("");
+                        $("#node-input-topic").parent().css('display','none');
+                        $("#node-input-device").parent().css('display','none');
+                    }
+                });
+
+                // 选择设备
+                $("#node-input-device").change(function () {
+                    var topicElenment = $("#node-input-topic");
+                    this.device = $("#node-input-device").val();
+                    var name = this.device || node.device;
+                    var device = devices.find(ele=>ele.deviceKey === name);
+                    var bol = !!device;
+                    if (bol) {
+                        node.deviceSecret = device.deviceSecret;
+                        $("#topicList").empty();
+                        $("#node-input-deviceName").text("" || device.name);
+                        // 获取主题
+                        $.getJSON('lark-topic?productId=' + node.productId,function(data) {
+                            if (JSON.parse(data).success) {
+                                console.log('get topic success!');
+                                topicElenment.parent().css('display','block');
+                                topics = JSON.parse(data).data;
+                                topics.forEach((item, index)=>{
+                                    item["topicName"] = item.topicName.replace('{deviceKey}', device.deviceKey);
+                                    var option = document.createElement('option');
+                                    option.textContent = item.description;
+                                    if (item.default) { option.textContent += ' -- DEFAULT'; }
+                                    option.setAttribute('value', item.topicName);
+                                    document.getElementById("topicList").appendChild(option);
+                                });
+                                topicElenment.val(node.topic);
+                                var topic = topics.find(ele=>ele.topicName === node.topic);
+                                if (!!topic) {
+                                    topicElenment.val(node.topic);
+                                    topicElenment.val()!==null && topicElenment.change();
+                                } else {
+                                    topicElenment.val("");
+                                    $("#node-input-topicType").text("");
+                                }
+                            } else {
+                                console.log('get topic failed!');
+                                $("#node-input-topicType").text("");
+                                topicElenment.parent().css('display','none');
+                            }
+                        });
+                    } else {
+                        if (devices.length>0){
+                            node.topic = "";
+                        } else {
+                            topicElenment.val("");
+                        }
+                        $("#node-input-topicType").text("");
+                        $("#node-input-deviceName").text("");
+                        topicElenment.parent().css('display','none');
+                    }
+                });
+
+                // 选择主题
+                $("#node-input-topic").change(function () {
+                    this.topic = $("#node-input-topic").val();
+                    var name = this.topic || node.topic;
+                    var topic = topics.find(ele=>ele.topicName === name);
+                    var bol = !!topic;
+                    if (bol) {
+                        $("#node-input-topicType").text("" || topic.description);
+                    }
+                })
+            }
+        });
+    })()
+</script>
+
+<script type="text/html" data-description-name="Lark Local Subscribe">
+    <p>Adds a form to user interface.</p>
+    <p>Helps to collect multiple value from the user on submit button click as an object in <code> msg.payload</code> </p>
+    <p>Multiple input elements can be added using add elements button</p>
+    <p>Each element contains following components:</p>
+    <ul>
+        <li> <b>Label</b> : Value that will be the label of the element in the user interface</li>
+        <li> <b>Name</b> : Represents the key (variable name) in the <code>msg.payload</code> in which the value of the corresponding element present</li>
+        <li> <b>Type</b> : Drop drown option to select the type of input element</li>
+        <li> <b>Required</b> : On switching on the user has to supply the value before submitting</li>
+        <li> <b>Delete</b> : To remove the current element form the form</li>
+    </ul>
+    <p>Optionally the <b>Topic</b> field can be used to set the <code>msg.topic</code> property.</p>
+</script>
