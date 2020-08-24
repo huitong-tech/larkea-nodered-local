@@ -10,9 +10,9 @@
   },
   "node-red": {
     "nodes": {
-      "lark_subscribe": "nodes/larkea_subscribe.js",
-      "lark_public": "nodes/larkea_public.js",
-      "lark_oauth": "nodes/larkea_oauth.js"
+      "larkea_subscribe": "nodes/larkea_subscribe.js",
+      "larkea_public": "nodes/larkea_public.js",
+      "larkea_oauth": "nodes/larkea_oauth.js"
     }
   },
   "keywords": [
