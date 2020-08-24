@@ -16,9 +16,10 @@
     }
   },
   "keywords": [
+    "HT",
     "larkea",
     "huitong",
-    "HT"
+    "node-red"
   ],
   "homepage": "https://www.huitong-tech.com",
   "license": "Apache-2.0",
