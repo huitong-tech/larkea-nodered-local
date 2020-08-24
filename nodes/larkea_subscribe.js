@@ -5,7 +5,7 @@ module.exports = function(RED) {
     var isUtf8 = require('is-utf8');
     var nodeConfig = require("./lib/config").config;
 
-    function LarkSubNode(config) {
+    function LarkeaSubNode(config) {
         RED.nodes.createNode(this, config);
         this.product = config.product;
         this.device = config.device;
@@ -80,12 +80,12 @@ module.exports = function(RED) {
             });
         }
     }
-    RED.nodes.registerType("Lark Local Subscribe",LarkSubNode);
+    RED.nodes.registerType("Larkea Local Subscribe",LarkeaSubNode);
 
-    var url = nodeConfig.larkUrl;
+    var url = nodeConfig.larkeaUrl;
     var accessToken = null;
     // 获取token
-    RED.httpAdmin.get("/lark-token", function(req,res) {
+    RED.httpAdmin.get("/larkea-token", function(req,res) {
         var nodeId = req.query.nodeId;
         if (nodeId !== '_ADD_') {
             var oauthNode = RED.nodes.getCredentials(nodeId);
@@ -105,7 +105,7 @@ module.exports = function(RED) {
     });
 
     // 获取产品
-    RED.httpAdmin.get("/lark-product", function(req,res) {
+    RED.httpAdmin.get("/larkea-product", function(req,res) {
         var rq = {};
         rq.url = url + '/api/products?limit=10000';
         rq.method = 'GET';
@@ -127,7 +127,7 @@ module.exports = function(RED) {
         }
     });
     // 获取设备
-    RED.httpAdmin.get("/lark-device", function(req,res) {
+    RED.httpAdmin.get("/larkea-device", function(req,res) {
         var rq = {};
         rq.url = url + '/api/devices?limit=10000&productKey=' + req.query.name;
         rq.method = 'GET';
@@ -150,7 +150,7 @@ module.exports = function(RED) {
     });
 
     // 获取主题
-    RED.httpAdmin.get("/lark-topic", function(req,res) {
+    RED.httpAdmin.get("/larkea-topic", function(req,res) {
         var rq = {};
         rq.url = url + '/api/products/' + req.query.productId + '/topics';
         rq.method = 'GET';

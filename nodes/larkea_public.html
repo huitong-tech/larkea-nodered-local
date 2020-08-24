@@ -1,7 +1,7 @@
-<script type="text/html" data-template-name="Lark Local Subscribe">
+<script type="text/html" data-template-name="Larkea Local Public">
     <div class="form-row">
-        <label for="node-input-larkOauth"><i></i>accessToken</label>
-        <input type="text" id="node-input-larkOauth">
+        <label for="node-input-larkeaOauth"><i></i>accessToken</label>
+        <input type="text" id="node-input-larkeaOauth">
     </div>
     <div class="form-row">
         <label for="node-input-name"><i></i>节点名称</label>
@@ -47,10 +47,9 @@
     var products = [];
     var devices = [];
     var topics = [];
-
     (function () {
-        RED.nodes.registerType('Lark Local Subscribe',{
-            category: 'Lark节点',
+        RED.nodes.registerType('Larkea Local Public',{
+            category: 'larkea节点',
             color: 'rgba(0, 174, 191, 0.729411764705882)',
             defaults: {
                 name: { value: '' },
@@ -61,37 +60,38 @@
                 product: { value: '', required: true },
                 productId: { value: '', required: true },
                 deviceSecret: { value: '', required: true },
-                larkOauth: { type: 'lark-oauth', required:true }
+                larkeaOauth: { type: 'larkea-oauth', required:true }
             },
-            inputs:0,
-            outputs:1,
+            inputs:1,
+            outputs:0,
             icon: 'icons/config.svg',
-            paletteLabel: 'local订阅',
-            align: 'left',
+            paletteLabel: 'local发布',
+            align: 'right',
             label: function() {
                 if (this.name) {
                     return this.name;
                 } else if (this.product && this.device) {
                     return this.product + '.' + this.device;
                 } else {
-                    return 'Lark订阅';
+                    return 'larkea发布';
                 }
             },
             labelStyle: function() { return this.name?'node_label_italic':''; },
             oneditprepare: function() {
                 var node = this;
+
                 // 选择token
-                var tokenElement = $('#node-input-larkOauth');
+                var tokenElement = $('#node-input-larkeaOauth');
                 tokenElement.change(function () {
-                    this.oauthNodes =$('#node-input-larkOauth').val();
+                    this.oauthNodes =$('#node-input-larkeaOauth').val();
                     var data = {
                         "nodeId": this.oauthNodes
                     }
-                    $.getJSON('lark-token',data,function(d) {
+                    $.getJSON('larkea-token',data,function(d) {
                         if (d.success) {
                             console.log('get token success!');
                             // 获取产品
-                            $.getJSON('lark-product',function(data) {
+                            $.getJSON('larkea-product',function(data) {
                                 if (JSON.parse(data).success) {
                                     console.log('get product success!');
                                     products = JSON.parse(data).data.rows;
@@ -109,8 +109,8 @@
                                 } else {
                                     console.log('get product failed!')
                                     if (JSON.parse(data).code===100010){
-                                        var n = {nodeId: $('#node-input-larkOauth').val()}
-                                        $.getJSON('lark-refresh',n,function(data) {
+                                        var n = {nodeId: $('#node-input-larkeaOauth').val()}
+                                        $.getJSON('larkea-refresh',n,function(data) {
                                             if (data.success) {
                                                 var refresh = $("#node-input-refresh")
                                                 if (refresh.text()===""){
@@ -146,16 +146,16 @@
                     this.product = $("#node-input-product").val();
                     var name = this.product || node.product;
                     var product = products.find(ele=>ele.productKey === name);
-                    var bol = !!product;
+                    var bol = !!product
                     if (bol) {
-                        node.productId = product.id;
-                        $("#deviceList").empty();
-                        $("#node-input-productName").text("" || product.name);
+                        node.productId = product.id
+                        $("#deviceList").empty()
+                        $("#node-input-productName").text("" || product.name)
                         // 获取设备
-                        $.getJSON('lark-device?name='+name,function(data) {
+                        $.getJSON('larkea-device?name='+name,function(data) {
                             if (JSON.parse(data).success) {
                                 console.log('get device success!');
-                                var deviceElement = $("#node-input-device");
+                                var deviceElement = $("#node-input-device")
                                 deviceElement.parent().css('display','block');
                                 devices = JSON.parse(data).data.rows;
                                 devices.forEach((item, index)=>{
@@ -171,15 +171,16 @@
                                 console.log('get device failed!')
                                 $("#node-input-topic").parent().css('display','none');
                                 $("#node-input-device").parent().css('display','none');
-                                $("#node-input-topicType").text("");
-                                $("#node-input-deviceName").text("");
+                                $("#node-input-topicType").text("")
+                                $("#node-input-deviceName").text("")
                             }
                         });
                     } else {
                         node.topic = "";
                         node.device = "";
-                        $("#node-input-topicType").text("");
-                        $("#node-input-deviceName").text("");
+                        $("#node-input-topicType").text("")
+                        $("#node-input-deviceName").text("")
+                        $("#node-input-productName").text("")
                         $("#node-input-topic").parent().css('display','none');
                         $("#node-input-device").parent().css('display','none');
                     }
@@ -187,23 +188,23 @@
 
                 // 选择设备
                 $("#node-input-device").change(function () {
-                    var topicElenment = $("#node-input-topic");
+                    var topicElenment = $("#node-input-topic")
                     this.device = $("#node-input-device").val();
                     var name = this.device || node.device;
                     var device = devices.find(ele=>ele.deviceKey === name);
-                    var bol = !!device;
+                    var bol = !!device
                     if (bol) {
-                        node.deviceSecret = device.deviceSecret;
-                        $("#topicList").empty();
-                        $("#node-input-deviceName").text("" || device.name);
+                        node.deviceSecret = device.deviceSecret
+                        $("#topicList").empty()
+                        $("#node-input-deviceName").text("" || device.name)
                         // 获取主题
-                        $.getJSON('lark-topic?productId=' + node.productId,function(data) {
+                        $.getJSON('larkea-topic?productId=' + node.productId,function(data) {
                             if (JSON.parse(data).success) {
                                 console.log('get topic success!');
                                 topicElenment.parent().css('display','block');
                                 topics = JSON.parse(data).data;
                                 topics.forEach((item, index)=>{
-                                    item["topicName"] = item.topicName.replace('{deviceKey}', device.deviceKey);
+                                    item["topicName"] = item.topicName.replace('{deviceKey}', device.deviceKey)
                                     var option = document.createElement('option');
                                     option.textContent = item.description;
                                     if (item.default) { option.textContent += ' -- DEFAULT'; }
@@ -217,32 +218,32 @@
                                     topicElenment.val()!==null && topicElenment.change();
                                 } else {
                                     topicElenment.val("");
-                                    $("#node-input-topicType").text("");
+                                    $("#node-input-topicType").text("")
                                 }
                             } else {
-                                console.log('get topic failed!');
-                                $("#node-input-topicType").text("");
-                                topicElenment.parent().css('display','none');
+                                console.log('get topic failed!')
+                                $("#node-input-topicType").text("")
+                                topicElenment.parent().css('display','none')
                             }
                         });
                     } else {
                         if (devices.length>0){
                             node.topic = "";
                         } else {
-                            topicElenment.val("");
+                            topicElenment.val("")
                         }
-                        $("#node-input-topicType").text("");
-                        $("#node-input-deviceName").text("");
-                        topicElenment.parent().css('display','none');
+                        $("#node-input-topicType").text("")
+                        $("#node-input-deviceName").text("")
+                        topicElenment.parent().css('display','none')
                     }
                 });
 
                 // 选择主题
-                $("#node-input-topic").change(function () {
+                $("#node-input-topic").change(function (e) {
                     this.topic = $("#node-input-topic").val();
                     var name = this.topic || node.topic;
                     var topic = topics.find(ele=>ele.topicName === name);
-                    var bol = !!topic;
+                    var bol = !!topic
                     if (bol) {
                         $("#node-input-topicType").text("" || topic.description);
                     }
@@ -252,7 +253,7 @@
     })()
 </script>
 
-<script type="text/html" data-description-name="Lark Local Subscribe">
+<script type="text/html" data-description-name="Larkea Local Public">
     <p>Adds a form to user interface.</p>
     <p>Helps to collect multiple value from the user on submit button click as an object in <code> msg.payload</code> </p>
     <p>Multiple input elements can be added using add elements button</p>

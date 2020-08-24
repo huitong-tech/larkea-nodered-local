@@ -4,7 +4,7 @@ var config = {
     mqtt: {
         qos: 1
     },
-    larkUrl: 'https://tju-larkea.staging.pivaiot.com'
+    larkeaUrl: 'https://tju-larkea.staging.pivaiot.com'
 }
 
 module.exports = {
