@@ -1,4 +1,4 @@
-<script type="text/html" data-template-name="lark-oauth">
+<script type="text/html" data-template-name="larkea-oauth">
     <div class="form-row">
         <label for="node-config-input-name"><i></i> <span>名称</span></label>
         <input type="text" id="node-config-input-name">
@@ -18,7 +18,7 @@
     </div>
 </script>
 <script type="text/javascript">
-    RED.nodes.registerType('lark-oauth',{
+    RED.nodes.registerType('larkea-oauth',{
         category: 'config',
         defaults: {
             name: { value: "" }
@@ -44,7 +44,7 @@
                     "accessSecret": secret.val(),
                     "nodeId": node.id
                 };
-                $.getJSON('lark-oauth',data,function(data) {
+                $.getJSON('larkea-oauth',data,function(data) {
                     if (JSON.parse(data).success) {
                         $('#node-input-remind').text('')
                         $('#node-input-success').text('验证成功');
@@ -66,7 +66,7 @@
                         "accessSecret": this.secret,
                         "nodeId": node.id
                     };
-                    $.getJSON('lark-oauth',data,function(data) {
+                    $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {
                             $('#node-input-remind').text('');
                             $('#node-input-success').text('验证成功');
@@ -88,7 +88,7 @@
                         "accessSecret": this.secret,
                         "nodeId": node.id
                     };
-                    $.getJSON('lark-oauth',data,function(data) {
+                    $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {
                             $('#node-input-remind').text('')
                             $('#node-input-success').text('验证成功');

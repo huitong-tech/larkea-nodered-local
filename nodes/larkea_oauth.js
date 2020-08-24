@@ -3,12 +3,12 @@ module.exports = function(RED) {
     var qs  =require("qs");
     var request = require("request");
     var nodeConfig = require("./lib/config").config;
-    function LarkOauthNode(n) {
+    function LarkeaOauthNode(n) {
         RED.nodes.createNode(this, n);
         var node = this;
     }
 
-    RED.nodes.registerType("lark-oauth",LarkOauthNode, {
+    RED.nodes.registerType("larkea-oauth",LarkeaOauthNode, {
         credentials: {
             accessKey: { value:"" },
             accessSecret: { value:"" },
@@ -17,11 +17,11 @@ module.exports = function(RED) {
         }
     });
 
-    var url = nodeConfig.larkUrl;
+    var url = nodeConfig.larkeaUrl;
     var r = null;
 
     // 获取token
-    RED.httpAdmin.get("/lark-oauth", function(req,res) {
+    RED.httpAdmin.get("/larkea-oauth", function(req,res) {
         var data = {
             "accessKey": req.query.accessKey,
             "accessSecret": req.query.accessSecret,
@@ -58,7 +58,7 @@ module.exports = function(RED) {
     });
 
     // 刷新token
-    RED.httpAdmin.get("/lark-refresh", function(req,res) {
+    RED.httpAdmin.get("/larkea-refresh", function(req,res) {
         var oauthNode = RED.nodes.getCredentials(req.query.nodeId);
         var data = {
             "refreshToken": oauthNode.refreshToken,
