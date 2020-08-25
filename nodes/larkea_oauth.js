@@ -5,7 +5,6 @@ module.exports = function(RED) {
     var nodeConfig = require("./lib/config").config;
     function LarkeaOauthNode(n) {
         RED.nodes.createNode(this, n);
-        var node = this;
     }
 
     RED.nodes.registerType("larkea-oauth",LarkeaOauthNode, {
@@ -18,14 +17,14 @@ module.exports = function(RED) {
     });
 
     var url = nodeConfig.larkeaUrl;
-    var r = null;
+    var refresh = null;
 
     // 获取token
     RED.httpAdmin.get("/larkea-oauth", function(req,res) {
         var data = {
             "accessKey": req.query.accessKey,
+            "grantType": "CLIENT_CREDENTIALS",
             "accessSecret": req.query.accessSecret,
-            "grantType": "CLIENT_CREDENTIALS"
         };
         const credentials = {
             "accessKey": req.query.accessKey,
@@ -48,7 +47,7 @@ module.exports = function(RED) {
                     res.json(body);
                 }else{
                     console.log('oauth error:', body);
-                    res.json(body)
+                    res.json(body);
                 }
             });
         }
@@ -61,8 +60,8 @@ module.exports = function(RED) {
     RED.httpAdmin.get("/larkea-refresh", function(req,res) {
         var oauthNode = RED.nodes.getCredentials(req.query.nodeId);
         var data = {
-            "refreshToken": oauthNode.refreshToken,
-            "grantType": "REFRESH_TOKEN"
+            "grantType": "REFRESH_TOKEN",
+            "refreshToken": oauthNode.refreshToken
         };
         var rq = {};
         rq.url = url + '/api/oauth2/token/refresh';
@@ -72,8 +71,8 @@ module.exports = function(RED) {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         try {
-            if (r !== oauthNode.refreshToken) {
-                r = oauthNode.refreshToken;
+            if (refresh !== oauthNode.refreshToken) {
+                refresh = oauthNode.refreshToken;
                 request(rq, function(err, resp, body) {
                     if(!err && resp.statusCode === 200){
                         const credentials = {
@@ -82,11 +81,11 @@ module.exports = function(RED) {
                             "accessToken": JSON.parse(body).data.accessToken,
                             "refreshToken": JSON.parse(body).data.refreshToken
                         };
-                        RED.nodes.addCredentials(req.query.nodeId, credentials)
+                        RED.nodes.addCredentials(req.query.nodeId, credentials);
                         res.json(JSON.parse(body));
                     }else{
                         console.log('refresh error:', body);
-                        res.json(JSON.parse(body))
+                        res.json(JSON.parse(body));
                     }
                 });
             }

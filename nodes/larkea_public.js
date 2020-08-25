@@ -24,11 +24,9 @@ module.exports = function(RED) {
             clean: true,
             reconnectPeriod: 15000
         };
-        this.users = {};
         this.mqttClient = mqttConfig;
         this.qos = nodeConfig.mqtt.qos;
         this.datatype = "utf8";
-        this.subscriptions = {};
         var node = this;
         this.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
         node.mqttClient.register(node,RED);
@@ -55,7 +53,7 @@ module.exports = function(RED) {
                 node.client.once('close', function() {
                     done();
                 });
-                node.client.end()
+                node.client.end();
             } else if (node.connecting || node.client.reconnecting) {
                 node.client.end();
                 done();
@@ -67,20 +65,18 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("Larkea Local Public",LarkeaPubNode);
 
-    var url = nodeConfig.larkeaUrl;
     var accessToken = null;
+    var url = nodeConfig.larkeaUrl;
     // 获取token
     RED.httpAdmin.get("/larkea-token", function(req,res) {
+        var bol = null;
         var nodeId = req.query.nodeId;
         if (nodeId !== '_ADD_') {
             var oauthNode = RED.nodes.getCredentials(nodeId);
             if (oauthNode) {
                 accessToken = oauthNode.accessToken;
-                if (accessToken){
-                    res.json({success: true});
-                } else {
-                    res.json({success: false});
-                }
+                bol = !!accessToken;
+                res.json({ success: bol });
             } else {
                 res.json({success: false});
             }
