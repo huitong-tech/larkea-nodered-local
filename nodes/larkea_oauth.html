@@ -40,13 +40,13 @@
             var secret = $("#node-config-input-accessSecret");
             if (key.val() !== "" && secret.val() !== "") {
                 var data = {
+                    "nodeId": node.id,
                     "accessKey": key.val(),
-                    "accessSecret": secret.val(),
-                    "nodeId": node.id
+                    "accessSecret": secret.val()
                 };
                 $.getJSON('larkea-oauth',data,function(data) {
                     if (JSON.parse(data).success) {
-                        $('#node-input-remind').text('')
+                        $('#node-input-remind').text('');
                         $('#node-input-success').text('验证成功');
                     } else {
                         if (JSON.parse(data).code === 100013) {
@@ -62,9 +62,9 @@
                 this.secret = secret.val();
                 if (this.key !== "" && this.secret !== "") {
                     var data = {
+                        "nodeId": node.id,
                         "accessKey": this.key,
-                        "accessSecret": this.secret,
-                        "nodeId": node.id
+                        "accessSecret": this.secret
                     };
                     $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {
@@ -84,13 +84,13 @@
                 this.secret = secret.val();
                 if (this.key !== "" && this.secret !== "") {
                     var data = {
+                        "nodeId": node.id,
                         "accessKey": this.key,
-                        "accessSecret": this.secret,
-                        "nodeId": node.id
+                        "accessSecret": this.secret
                     };
                     $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {
-                            $('#node-input-remind').text('')
+                            $('#node-input-remind').text('');
                             $('#node-input-success').text('验证成功');
                         } else {
                             if (JSON.parse(data).code === 100013) {
