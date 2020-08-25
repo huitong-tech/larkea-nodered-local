@@ -33,10 +33,8 @@ var deregister = function(node,done) {
   }
   if (Object.keys(users).length >= 0) {
     if (node.client && node.client.connected) {
-      console.log(33333333)
       return node.client.end(done);
     } else {
-      console.log(444444)
       node.client.end();
       return done();
     }
