@@ -1,5 +1,5 @@
 {
-  "name": "node-red-larkea-local",
+  "name": "node-red-larkea-local-device",
   "version": "1.0.0",
   "description": "The node of larkea",
   "dependencies": {
