@@ -9,3 +9,7 @@
 * ## Mac和linux
 1. 安装依赖，在该项目目录内运行`npm install`
 2. 安装节点，依次执行`cd $HOME/.node-red`,`npm install <path to location of node module>`
+
+
+* ## npm直接安装
+依次执行`cd $HOME/.node-red`,`npm install node-red-contrib-larkea-local-device`
