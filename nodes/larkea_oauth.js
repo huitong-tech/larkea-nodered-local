@@ -3,20 +3,43 @@ module.exports = function(RED) {
     var qs  =require("qs");
     var request = require("request");
     var nodeConfig = require("./lib/config").config;
-    function LarkeaOauthNode(n) {
-        RED.nodes.createNode(this, n);
+    function LarkeaOauthNode(config) {
+        RED.nodes.createNode(this, config);
+        this.broker = config.broker;
+        this.port = config.port;
+        this.qos = config.qos;
+        this.domain = config.domain;
+        this.accessKey = this.credentials.accessKey;
+        this.accessSecret = this.credentials.accessSecret;
+        this.accessToken = this.credentials.accessToken;
+        this.refreshToken = this.credentials.refreshToken;
+        const credentials = {
+            "broker": this.broker,
+            "port": this.port,
+            "qos": this.qos,
+            "domain": this.domain,
+            "accessKey": this.accessKey,
+            "accessSecret": this.accessSecret,
+            "accessToken": this.accessToken,
+            "refreshToken": this.refreshToken
+        };
+        RED.nodes.addCredentials(config.id, credentials);
     }
 
     RED.nodes.registerType("larkea-oauth",LarkeaOauthNode, {
         credentials: {
-            accessKey: { value:"" },
-            accessSecret: { value:"" },
-            accessToken: { type: "password" },
-            refreshToken: { type: "password" }
+            broker: { type: "text" },
+            port: { type: "text" },
+            qos: { type: "text" },
+            domain: { type: "text" },
+            accessKey: { type: "text" },
+            accessSecret: { type: "text" },
+            accessToken: { type: "text" },
+            refreshToken: { type: "text" }
         }
     });
 
-    var url = nodeConfig.larkeaUrl;
+    // var url = nodeConfig.larkeaUrl;
     var refresh = null;
 
     // 获取token
@@ -27,12 +50,16 @@ module.exports = function(RED) {
             "accessSecret": req.query.accessSecret,
         };
         const credentials = {
+            "broker": req.query.broker,
+            "port": req.query.port,
+            "qos": req.query.qos,
+            "domain": req.query.domain,
             "accessKey": req.query.accessKey,
             "accessSecret": req.query.accessSecret,
         };
         var nodeId = req.query.nodeId;
         var rq = {};
-        rq.url = url + '/api/oauth2/token';
+        rq.url = req.query.domain + '/api/oauth2/token';
         rq.method = 'POST';
         rq.body = qs.stringify(data);
         rq.headers = {
@@ -64,7 +91,7 @@ module.exports = function(RED) {
             "refreshToken": oauthNode.refreshToken
         };
         var rq = {};
-        rq.url = url + '/api/oauth2/token/refresh';
+        rq.url = oauthNode.domain + '/api/oauth2/token/refresh';
         rq.method = 'POST';
         rq.body = qs.stringify(data);
         rq.headers = {
@@ -76,6 +103,10 @@ module.exports = function(RED) {
                 request(rq, function(err, resp, body) {
                     if(!err && resp.statusCode === 200){
                         const credentials = {
+                            "broker": oauthNode.broker,
+                            "port": oauthNode.port,
+                            "qos": oauthNode.qos,
+                            "domain": oauthNode.domain,
                             "accessKey": oauthNode.accessKey,
                             "accessSecret": oauthNode.accessSecret,
                             "accessToken": JSON.parse(body).data.accessToken,

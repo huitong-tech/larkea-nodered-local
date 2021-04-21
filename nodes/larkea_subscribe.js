@@ -19,16 +19,18 @@ module.exports = function(RED) {
     var isUtf8 = require('is-utf8');
     var request = require("request");
     var mqttConfig = require("./lib/mqttConfig");
-    var nodeConfig = require("./lib/config").config;
+    // var nodeConfig = require("./lib/config").config;
 
     function LarkeaSubNode(config) {
         RED.nodes.createNode(this, config);
+        this.larkeaOauth = config.larkeaOauth;
+        const larkeaOauth = RED.nodes.getCredentials(this.larkeaOauth)
         this.product = config.product;
         this.device = config.device;
         this.topic = config.topic;
         this.deviceSecret = config.deviceSecret
-        this.broker = nodeConfig.broker;
-        this.brokerurl = 'mqtt://' + nodeConfig.broker + ':' + nodeConfig.port;
+        this.broker = larkeaOauth.broker;
+        this.brokerurl = 'mqtt://' + larkeaOauth.broker + ':' + larkeaOauth.port;
         this.clientid = this.product + '.' + this.device;
         this.connected = false;
         this.closing = false;
@@ -42,7 +44,7 @@ module.exports = function(RED) {
             reconnectPeriod: 15000
         };
         this.mqttClient = mqttConfig;
-        this.qos = nodeConfig.mqtt.qos;
+        this.qos = larkeaOauth.qos;
         this.datatype = "utf8";
         var node = this;
         this.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
@@ -95,92 +97,4 @@ module.exports = function(RED) {
         }
     }
     RED.nodes.registerType("Larkea Local Subscribe",LarkeaSubNode);
-
-    var url = nodeConfig.larkeaUrl;
-    var accessToken = null;
-    // 获取token
-    RED.httpAdmin.get("/larkea-token", function(req,res) {
-        var bol = null;
-        var nodeId = req.query.nodeId;
-        if (nodeId !== '_ADD_') {
-            var oauthNode = RED.nodes.getCredentials(nodeId);
-            if (oauthNode) {
-                accessToken = oauthNode.accessToken;
-                bol = !!accessToken;
-                res.json({ success: bol });
-            } else {
-                res.json({success: false});
-            }
-        } else {
-            res.json({success: false});
-        }
-    });
-
-    // 获取产品
-    RED.httpAdmin.get("/larkea-product", function(req,res) {
-        var rq = {};
-        rq.url = url + '/api/products?limit=10000';
-        rq.method = 'GET';
-        rq.headers = {
-            'x-larkea-token': accessToken
-        };
-        try {
-            request(rq, function(err, resp, body) {
-                if(!err && res.statusCode === 200){
-                    res.json(body);
-                }else{
-                    console.log('get_place error:', err);
-                    res.json(body);
-                }
-            });
-        }
-        catch (e) {
-            console.log('catch error:', e);
-        }
-    });
-    // 获取设备
-    RED.httpAdmin.get("/larkea-device", function(req,res) {
-        var rq = {};
-        rq.url = url + '/api/devices?limit=10000&productKey=' + req.query.name;
-        rq.method = 'GET';
-        rq.headers = {
-            'x-larkea-token': accessToken
-        };
-        try {
-            request(rq, function(err, resp, body) {
-                if(!err && res.statusCode === 200){
-                    res.json(body);
-                }else{
-                    console.log('get_sensor error:', err);
-                    res.json(body);
-                }
-            });
-        }
-        catch (e) {
-            console.log('catch error:', e);
-        }
-    });
-
-    // 获取主题
-    RED.httpAdmin.get("/larkea-topic", function(req,res) {
-        var rq = {};
-        rq.url = url + '/api/products/' + req.query.productId + '/topics';
-        rq.method = 'GET';
-        rq.headers = {
-            'x-larkea-token': accessToken
-        };
-        try {
-            request(rq, function(err, resp, body) {
-                if(!err && res.statusCode === 200){
-                    res.json(body);
-                }else{
-                    console.log('get_property error:', err);
-                    res.json(body);
-                }
-            });
-        }
-        catch (e) {
-            console.log('catch error:', e);
-        }
-    });
 };

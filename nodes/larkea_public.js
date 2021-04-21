@@ -18,16 +18,18 @@ module.exports = function(RED) {
     "use strict";
     var request = require("request");
     var mqttConfig = require("./lib/mqttConfig");
-    var nodeConfig = require("./lib/config").config;
+    // var nodeConfig = require("./lib/config").config;
 
     function LarkeaPubNode(config) {
         RED.nodes.createNode(this, config);
+        this.larkeaOauth = config.larkeaOauth;
+        const larkeaOauth = RED.nodes.getCredentials(this.larkeaOauth)
         this.product = config.product;
         this.device = config.device;
         this.topic = config.topic;
         this.deviceSecret = config.deviceSecret
-        this.broker = nodeConfig.broker;
-        this.brokerurl = 'mqtt://' + nodeConfig.broker + ':' + nodeConfig.port;
+        this.broker = larkeaOauth.broker;
+        this.brokerurl = 'mqtt://' + larkeaOauth.broker + ':' + larkeaOauth.port;
         this.clientid = this.product + '.' + this.device;
         this.connected = false;
         this.connecting = false;
@@ -41,7 +43,7 @@ module.exports = function(RED) {
             reconnectPeriod: 15000
         };
         this.mqttClient = mqttConfig;
-        this.qos = nodeConfig.mqtt.qos;
+        this.qos = larkeaOauth.qos;
         this.datatype = "utf8";
         var node = this;
         this.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
@@ -82,15 +84,19 @@ module.exports = function(RED) {
     RED.nodes.registerType("Larkea Local Public",LarkeaPubNode);
 
     var accessToken = null;
-    var url = nodeConfig.larkeaUrl;
+    var url = null;
+
     // 获取token
     RED.httpAdmin.get("/larkea-token", function(req,res) {
         var bol = null;
         var nodeId = req.query.nodeId;
+        console.log(nodeId)
         if (nodeId !== '_ADD_') {
             var oauthNode = RED.nodes.getCredentials(nodeId);
+            console.log(oauthNode)
             if (oauthNode) {
                 accessToken = oauthNode.accessToken;
+                url = oauthNode.domain;
                 bol = !!accessToken;
                 res.json({ success: bol });
             } else {
@@ -123,6 +129,7 @@ module.exports = function(RED) {
             console.log('catch error:', e);
         }
     });
+
     // 获取设备
     RED.httpAdmin.get("/larkea-device", function(req,res) {
         var rq = {};
