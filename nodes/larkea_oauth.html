@@ -4,6 +4,22 @@
         <input type="text" id="node-config-input-name">
     </div>
     <div class="form-row">
+        <label for="node-config-input-broker"><i></i> <span>MQTT Broker</span></label>
+        <input type="text" id="node-config-input-broker">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port"><i></i> <span>端口</span></label>
+        <input type="text" id="node-config-input-port">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-qos"><i></i> <span>Qos</span></label>
+        <input type="text" id="node-config-input-qos">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-domain"><i></i> <span>地址</span></label>
+        <input type="text" id="node-config-input-domain">
+    </div>
+    <div class="form-row">
         <label for="node-config-input-accessKey"><i></i> <span>AccessKey</span></label>
         <input type="text" id="node-config-input-accessKey">
     </div>
@@ -13,6 +29,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-remind"><i></i></label>
+        <button type="button" class="red-ui-button lark-button" style="margin-right: 16px">验证</button>
         <span id="node-input-remind" style="color: #d6615f"></span>
         <span id="node-input-success" style="color: #5a8"></span>
     </div>
@@ -21,11 +38,15 @@
     RED.nodes.registerType('larkea-oauth',{
         category: 'config',
         defaults: {
-            name: { value: "" }
+            name: { value: "" },
+            broker: { value:"mqtt-cn-bj1.iot.larkea.com", required:true },
+            port: { value:"1883", required:true },
+            qos: { value:"1", required:true },
+            domain: { value:"https://iot.larkea.com", required:true }
         },
         credentials: {
-            accessKey: { value:"", required:true },
-            accessSecret: { value:"", required:true }
+            accessKey: { type:"text", required:true },
+            accessSecret: { type:"text", required:true }
         },
         label: function() {
             if (this.name) {
@@ -36,14 +57,23 @@
         },
         oneditprepare: function(){
             var node = this;
+            var broker = $("#node-config-input-broker");
+            var port = $("#node-config-input-port");
+            var qos = $("#node-config-input-qos");
+            var domain = $("#node-config-input-domain");
             var key = $("#node-config-input-accessKey");
             var secret = $("#node-config-input-accessSecret");
-            if (key.val() !== "" && secret.val() !== "") {
+            if (domain.val() !== "" && key.val() !== "" && secret.val() !== "") {
                 var data = {
                     "nodeId": node.id,
+                    "broker": broker.val(),
+                    "port": port.val(),
+                    "qos": qos.val(),
+                    "domain": domain.val(),
                     "accessKey": key.val(),
                     "accessSecret": secret.val()
                 };
+                $('#node-input-success').text('正在验证...');
                 $.getJSON('larkea-oauth',data,function(data) {
                     if (JSON.parse(data).success) {
                         $('#node-input-remind').text('');
@@ -57,15 +87,25 @@
 
                 })
             }
-            key.change(function () {
+
+            $(".lark-button").on("click", function() {
+                this.broker = broker.val();
+                this.port = port.val();
+                this.qos = qos.val();
+                this.domain = domain.val();
                 this.key = key.val();
                 this.secret = secret.val();
-                if (this.key !== "" && this.secret !== "") {
+                if (this.domain !== "" && this.key !== "" && this.secret !== "") {
                     var data = {
                         "nodeId": node.id,
+                        "broker": this.broker,
+                        "port": this.port,
+                        "qos": this.qos,
+                        "domain": this.domain,
                         "accessKey": this.key,
                         "accessSecret": this.secret
                     };
+                    $('#node-input-success').text('正在验证...');
                     $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {
                             $('#node-input-remind').text('');
@@ -77,30 +117,10 @@
                             }
                         }
                     });
+                } else {
+                    $('#node-input-remind').text('地址/AccessKey/AccessSecret未填写');
                 }
-            });
-            secret.change(function () {
-                this.key = key.val();
-                this.secret = secret.val();
-                if (this.key !== "" && this.secret !== "") {
-                    var data = {
-                        "nodeId": node.id,
-                        "accessKey": this.key,
-                        "accessSecret": this.secret
-                    };
-                    $.getJSON('larkea-oauth',data,function(data) {
-                        if (JSON.parse(data).success) {
-                            $('#node-input-remind').text('');
-                            $('#node-input-success').text('验证成功');
-                        } else {
-                            if (JSON.parse(data).code === 100013) {
-                                $('#node-input-success').text('');
-                                $('#node-input-remind').text('AccessKey或AccessSecret不正确');
-                            }
-                        }
-                    });
-                }
-            });
+            })
         }
     });
 </script>

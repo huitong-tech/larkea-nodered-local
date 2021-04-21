@@ -93,10 +93,10 @@
                             // 获取产品
                             $.getJSON('larkea-product',function(data) {
                                 if (JSON.parse(data).success) {
-                                    $("#productList").empty();
                                     console.log('get product success!');
                                     products = JSON.parse(data).data.rows;
                                     var productElement = $('#node-input-product');
+                                    $("#productList").empty();
                                     products.forEach(item=>{
                                         var option = document.createElement('option');
                                         option.textContent = item.name;
@@ -144,7 +144,6 @@
                     var product = products.find(ele=>ele.productKey === name);
                     var bol = !!product;
                     if (bol) {
-                        $("#deviceList").empty();
                         node.productId = product.id;
                         $("#node-input-productName").text("" || product.name);
                         // 获取设备
@@ -154,6 +153,7 @@
                                 var deviceElement = $("#node-input-device");
                                 deviceElement.parent().css('display','block');
                                 devices = JSON.parse(data).data.rows;
+                                $("#deviceList").empty();
                                 devices.forEach(item=>{
                                     var option = document.createElement('option');
                                     option.textContent = item.name;
@@ -172,8 +172,13 @@
                             }
                         });
                     } else {
-                        node.topic = "";
-                        node.device = "";
+                        if (products.length>0){
+                            node.topic = "";
+                            node.device = "";
+                        } else {
+                            $("#node-input-topic").val("");
+                            $("#node-input-device").val("");
+                        }
                         $("#node-input-topicType").text("");
                         $("#node-input-deviceName").text("");
                         $("#node-input-topic").parent().css('display','none');
@@ -190,7 +195,6 @@
                     var bol = !!device;
                     if (bol) {
                         node.deviceSecret = device.deviceSecret;
-                        $("#topicList").empty();
                         $("#node-input-deviceName").text("" || device.name);
                         // 获取主题
                         $.getJSON('larkea-topic?productId=' + node.productId,function(data) {
@@ -198,6 +202,7 @@
                                 console.log('get topic success!');
                                 topicElenment.parent().css('display','block');
                                 topics = JSON.parse(data).data;
+                                $("#topicList").empty();
                                 topics.forEach(item=>{
                                     item["topicName"] = item.topicName.replace('{deviceKey}', device.deviceKey);
                                     var option = document.createElement('option');
