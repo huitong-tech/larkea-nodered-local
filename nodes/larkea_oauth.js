@@ -8,6 +8,8 @@ module.exports = function(RED) {
         this.broker = config.broker;
         this.port = config.port;
         this.qos = config.qos;
+        this.username = config.username;
+        this.password = config.password;
         this.domain = config.domain;
         this.accessKey = this.credentials.accessKey;
         this.accessSecret = this.credentials.accessSecret;
@@ -23,6 +25,8 @@ module.exports = function(RED) {
             "accessToken": this.accessToken,
             "refreshToken": this.refreshToken
         };
+        if (this.username) { credentials['username'] = this.username }
+        if (this.password) { credentials['password'] = this.password }
         RED.nodes.addCredentials(config.id, credentials);
     }
 
@@ -31,6 +35,8 @@ module.exports = function(RED) {
             broker: { type: "text" },
             port: { type: "text" },
             qos: { type: "text" },
+            username: { type: "text" },
+            password: { type: "password" },
             domain: { type: "text" },
             accessKey: { type: "text" },
             accessSecret: { type: "text" },
@@ -57,6 +63,8 @@ module.exports = function(RED) {
             "accessKey": req.query.accessKey,
             "accessSecret": req.query.accessSecret,
         };
+        if (req.query.username) { credentials['username'] = req.query.username }
+        if (req.query.password) { credentials['password'] = req.query.password }
         var nodeId = req.query.nodeId;
         var rq = {};
         rq.url = req.query.domain + '/api/oauth2/token';
@@ -112,6 +120,8 @@ module.exports = function(RED) {
                             "accessToken": JSON.parse(body).data.accessToken,
                             "refreshToken": JSON.parse(body).data.refreshToken
                         };
+                        if (oauthNode.username) { credentials['username'] = oauthNode.username }
+                        if (oauthNode.password) { credentials['password'] = oauthNode.password }
                         RED.nodes.addCredentials(req.query.nodeId, credentials);
                         res.json(JSON.parse(body));
                     }else{

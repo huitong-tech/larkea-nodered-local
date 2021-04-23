@@ -35,10 +35,12 @@ module.exports = function(RED) {
         this.connected = false;
         this.closing = false;
         this.connecting = false;
+        const username = larkeaOauth.username ? larkeaOauth.username : (this.product + '.' + this.device)
+        const password = larkeaOauth.password ? larkeaOauth.password: this.deviceSecret
         this.options = {
             clientId: this.product + '.' + this.device,
-            username: this.product + '.' + this.device,
-            password: this.deviceSecret,
+            username: username,
+            password: password,
             keepalive: 60,
             clean: true,
             reconnectPeriod: 15000
@@ -77,6 +79,8 @@ module.exports = function(RED) {
             }, this.id);
             if (this.connected) {
                 node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
+            } else {
+                node.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
             }
             this.on('close', function(removed, done) {
                 node.closing = true;

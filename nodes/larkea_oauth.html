@@ -16,6 +16,14 @@
         <input type="text" id="node-config-input-qos">
     </div>
     <div class="form-row">
+        <label for="node-config-input-username"><i></i> <span>用户名</span></label>
+        <input type="text" id="node-config-input-username">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-password"><i></i> <span>密码</span></label>
+        <input type="password" id="node-config-input-password">
+    </div>
+    <div class="form-row">
         <label for="node-config-input-domain"><i></i> <span>地址</span></label>
         <input type="text" id="node-config-input-domain">
     </div>
@@ -42,6 +50,8 @@
             broker: { value:"mqtt-cn-bj1.iot.larkea.com", required:true },
             port: { value:"1883", required:true },
             qos: { value:"1", required:true },
+            username: { value: "" },
+            password: { value: "" },
             domain: { value:"https://iot.larkea.com", required:true }
         },
         credentials: {
@@ -60,6 +70,8 @@
             var broker = $("#node-config-input-broker");
             var port = $("#node-config-input-port");
             var qos = $("#node-config-input-qos");
+            var username = $("#node-config-input-username");
+            var password = $("#node-config-input-password");
             var domain = $("#node-config-input-domain");
             var key = $("#node-config-input-accessKey");
             var secret = $("#node-config-input-accessSecret");
@@ -73,6 +85,8 @@
                     "accessKey": key.val(),
                     "accessSecret": secret.val()
                 };
+                if (username.val()) { data['username'] = username.val() }
+                if (password.val()) { data['password'] = password.val() }
                 $('#node-input-success').text('正在验证...');
                 $.getJSON('larkea-oauth',data,function(data) {
                     if (JSON.parse(data).success) {
@@ -92,6 +106,8 @@
                 this.broker = broker.val();
                 this.port = port.val();
                 this.qos = qos.val();
+                this.username = username.val();
+                this.password = password.val();
                 this.domain = domain.val();
                 this.key = key.val();
                 this.secret = secret.val();
@@ -105,6 +121,8 @@
                         "accessKey": this.key,
                         "accessSecret": this.secret
                     };
+                    if (this.username) { data['username'] = this.username }
+                    if (this.password) { data['password'] = this.password }
                     $('#node-input-success').text('正在验证...');
                     $.getJSON('larkea-oauth',data,function(data) {
                         if (JSON.parse(data).success) {

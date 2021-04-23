@@ -34,10 +34,12 @@ module.exports = function(RED) {
         this.connected = false;
         this.connecting = false;
         this.closing = false;
+        const username = larkeaOauth.username ? larkeaOauth.username : (this.product + '.' + this.device)
+        const password = larkeaOauth.password ? larkeaOauth.password: this.deviceSecret
         this.options = {
             clientId: this.product + '.' + this.device,
-            username: this.product + '.' + this.device,
-            password: this.deviceSecret,
+            username: username,
+            password: password,
             keepalive: 60,
             clean: true,
             reconnectPeriod: 15000
@@ -48,15 +50,17 @@ module.exports = function(RED) {
         var node = this;
         this.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
         node.mqttClient.register(node,RED);
-        if (node.connected) {
-            node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
-        }
+        node.connected && node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
         this.on('input',function (msg,send,done) {
             msg.topic = node.topic;
             if (msg.hasOwnProperty("payload")) {
                 if (msg.hasOwnProperty("topic") && (typeof msg.topic === "string") && (msg.topic !== "")) { // topic must exist
                     this.mqttClient.publish(node, msg, done);  // send the message
-                    node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
+                    if (node.connected) {
+                        node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
+                    } else {
+                        node.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
+                    }
                 } else {
                     node.warn(RED._("mqtt.errors.invalid-topic"));
                     done();
@@ -90,10 +94,8 @@ module.exports = function(RED) {
     RED.httpAdmin.get("/larkea-token", function(req,res) {
         var bol = null;
         var nodeId = req.query.nodeId;
-        console.log(nodeId)
         if (nodeId !== '_ADD_') {
             var oauthNode = RED.nodes.getCredentials(nodeId);
-            console.log(oauthNode)
             if (oauthNode) {
                 accessToken = oauthNode.accessToken;
                 url = oauthNode.domain;
