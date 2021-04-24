@@ -38,8 +38,8 @@ module.exports = function(RED) {
         const username = larkeaOauth.username ? larkeaOauth.username : (this.product + '.' + this.device)
         const password = larkeaOauth.password ? larkeaOauth.password: this.deviceSecret
         let clientId = this.product + '.' + this.device
-        if (username && password) {
-            clientId = clientId + '.' + this.larkeaOauth
+        if (larkeaOauth.username && larkeaOauth.password) {
+            clientId = 'mqtt_' + (1+Math.random()*4294967295).toString(16) + '.' + this.larkeaOauth
         }
         this.options = {
             clientId: clientId,
