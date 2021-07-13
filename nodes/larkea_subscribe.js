@@ -17,7 +17,7 @@
 module.exports = function(RED) {
     "use strict";
     var isUtf8 = require('is-utf8');
-    var request = require("request");
+    var crypto = require("crypto-js");
     var mqttConfig = require("./lib/mqttConfig");
     // var nodeConfig = require("./lib/config").config;
 
@@ -35,11 +35,15 @@ module.exports = function(RED) {
         this.connected = false;
         this.closing = false;
         this.connecting = false;
-        const username = larkeaOauth.username ? larkeaOauth.username : (this.product + '.' + this.device)
-        const password = larkeaOauth.password ? larkeaOauth.password: this.deviceSecret
-        let clientId = this.product + '.' + this.device
+        const username = larkeaOauth.username ? larkeaOauth.username : (this.product + '.' + this.device);
+        let password = larkeaOauth.password ? larkeaOauth.password : this.deviceSecret;
+        let clientId = this.product + '.' + this.device;
         if (larkeaOauth.username && larkeaOauth.password) {
-            clientId = 'mqtt_' + (1+Math.random()*4294967295).toString(16) + '.' + this.larkeaOauth
+            const timestamp = new Date().getTime();
+            clientId = `reserved?nonce=${this.larkeaOauth}&timestamp=${timestamp}`
+            const signData = `accessKey=${larkeaOauth.username}&nonce=${this.larkeaOauth}&timestamp=${timestamp}`;
+            const hash = crypto.HmacSHA256(signData, larkeaOauth.password);
+            password = crypto.enc.Hex.stringify(hash);
         }
         this.options = {
             clientId: clientId,
