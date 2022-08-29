@@ -80,11 +80,7 @@ var connect = function (node,RED) {
         node.connecting = false;
         node.connected = true;
         node.log(RED._("mqtt.state.connected",{broker:(node.clientid?node.clientid+"@":"")+node.brokerurl}));
-        for (var id in users) {
-          if (users.hasOwnProperty(id)) {
-            users[id].status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
-          }
-        }
+        node.status({fill:"green",shape:"dot",text:"node-red:common.status.connected"});
         // Remove any existing listeners before resubscribing to avoid duplicates in the event of a re-connection
         node.client.removeAllListeners('message');
 
@@ -110,22 +106,14 @@ var connect = function (node,RED) {
         }
       });
       node.client.on("reconnect", function() {
-        for (var id in users) {
-          if (users.hasOwnProperty(id)) {
-            users[id].status({fill:"yellow",shape:"ring",text:"node-red:common.status.connecting"});
-          }
-        }
+        node.status({fill:"yellow",shape:"ring",text:"node-red:common.status.connecting"});
       });
       // Register disconnect handlers
       node.client.on('close', function () {
         if (node.connected) {
           node.connected = false;
           node.log(RED._("mqtt.state.disconnected",{broker:(node.clientid?node.clientid+"@":"")+node.brokerurl}));
-          for (var id in users) {
-            if (users.hasOwnProperty(id)) {
-              users[id].status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
-            }
-          }
+          node.status({fill:"red",shape:"ring",text:"node-red:common.status.disconnected"});
         } else if (node.connecting) {
           node.log(RED._("mqtt.state.connect-failed",{broker:(node.clientid?node.clientid+"@":"")+node.brokerurl}));
         }
@@ -205,10 +193,10 @@ var publish = function (node,msg,done) {
 };
 
 module.exports = {
-    register,
-    deregister,
-    connect,
-    subscribe,
-    unsubscribe,
-    publish
+  register,
+  deregister,
+  connect,
+  subscribe,
+  unsubscribe,
+  publish
 };
